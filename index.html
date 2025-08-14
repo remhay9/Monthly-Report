@@ -3,113 +3,96 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Monthly Payment Tracker with Login</title>
+<title>Monthly Payment Tracker</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
     body {
         background-color: #f8f9fa;
     }
     .container {
-        max-width: 1000px;
-        margin-top: 30px;
+        max-width: 900px;
+        margin-top: 20px;
     }
-    #loginPage {
-        max-width: 400px;
-        margin: 100px auto;
+    /* Make table scrollable on mobile */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    /* Reduce padding on small screens */
+    @media (max-width: 576px) {
+        h2 {
+            font-size: 1.4rem;
+        }
+        .form-label {
+            font-size: 0.9rem;
+        }
+        .btn {
+            font-size: 0.9rem;
+        }
     }
 </style>
 </head>
 <body>
 
-<!-- Login Page -->
-<div id="loginPage" class="card shadow-sm p-4">
-    <h3 class="text-center mb-4">🔑 Login</h3>
-    <form id="loginForm">
-        <div class="mb-3">
-            <label class="form-label">Username</label>
-            <input type="text" id="username" class="form-control" placeholder="Enter username" required>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Password</label>
-            <input type="password" id="password" class="form-control" placeholder="Enter password" required>
-        </div>
-        <button type="submit" class="btn btn-primary w-100">Login</button>
-    </form>
+<div class="container" id="loginSection">
+    <h2 class="text-center mb-4">🔐 Login</h2>
+    <div class="card shadow-sm p-3">
+        <form id="loginForm">
+            <div class="mb-3">
+                <label class="form-label">Username</label>
+                <input type="text" id="username" class="form-control" placeholder="Enter username" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" id="password" class="form-control" placeholder="Enter password" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Login</button>
+        </form>
+    </div>
 </div>
 
-<!-- App Page -->
-<div id="appPage" class="container" style="display:none;">
+<div class="container d-none" id="trackerSection">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>💰 Monthly Payment Tracker</h2>
-        <button class="btn btn-secondary" onclick="logout()">Logout</button>
+        <h2 class="mb-0">💰 Monthly Payment Tracker</h2>
+        <button class="btn btn-danger btn-sm" onclick="logout()">Logout</button>
     </div>
 
     <!-- Form -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
-            <form id="expenseForm" class="row g-3">
-                <div class="col-md-3">
+            <form id="expenseForm" class="row g-2">
+                <div class="col-12 col-md-4">
                     <label class="form-label">Date</label>
                     <input type="date" id="date" class="form-control" required>
                 </div>
-                <div class="col-md-3">
+                <div class="col-12 col-md-4">
                     <label class="form-label">Description</label>
                     <input type="text" id="description" class="form-control" placeholder="e.g., Electricity bill" required>
                 </div>
-                <div class="col-md-2">
+                <div class="col-12 col-md-4">
                     <label class="form-label">Amount ($)</label>
                     <input type="number" id="amount" class="form-control" step="0.01" required>
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label">Category</label>
-                    <select id="category" class="form-select" required>
-                        <option value="">Select</option>
-                        <option>Food</option>
-                        <option>Bills</option>
-                        <option>Transport</option>
-                        <option>Shopping</option>
-                        <option>Other</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">&nbsp;</label>
-                    <button type="submit" class="btn btn-primary w-100">Add</button>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary w-100">Add Payment</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Summary & Filters -->
+    <!-- Summary -->
     <div class="alert alert-success text-center">
-        <strong>Total for <span id="monthName"></span>:</strong> $<span id="totalMonth">0.00</span>
-    </div>
-
-    <div class="mb-3 d-flex flex-wrap gap-2">
-        <select id="filterCategory" class="form-select" style="max-width:200px;">
-            <option value="">All Categories</option>
-            <option>Food</option>
-            <option>Bills</option>
-            <option>Transport</option>
-            <option>Shopping</option>
-            <option>Other</option>
-        </select>
-
-        <select id="monthSelect" class="form-select" style="max-width:200px;"></select>
-
-        <button class="btn btn-danger" onclick="exportPDF()">Export PDF</button>
+        <strong>Total This Month:</strong> $<span id="totalMonth">0.00</span>
     </div>
 
     <!-- Table -->
-    <div class="card shadow-sm mb-4">
+    <div class="card shadow-sm">
         <div class="card-body table-responsive">
             <table class="table table-bordered text-center align-middle">
                 <thead class="table-dark">
                     <tr>
                         <th>Date</th>
                         <th>Description</th>
-                        <th>Category</th>
                         <th>Amount ($)</th>
                         <th>Action</th>
                     </tr>
@@ -118,71 +101,30 @@
             </table>
         </div>
     </div>
-
-    <!-- Chart -->
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <canvas id="spendingChart" height="100"></canvas>
-        </div>
-    </div>
 </div>
 
 <script>
-const users = {
-    "remhay": "Sophanahay010525",
-    "sophana": "Sophanahay010525"
-};
-
-let currentUser = null;
 let expenses = [];
+let currentUser = "";
 
-function saveData() {
-    localStorage.setItem(`expenses_${currentUser}`, JSON.stringify(expenses));
-}
-
-function loadData() {
-    expenses = JSON.parse(localStorage.getItem(`expenses_${currentUser}`)) || [];
-}
-
-function getMonthYear(date) {
-    const d = new Date(date);
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-}
-
-function renderMonthOptions() {
-    const months = [...new Set(expenses.map(e => getMonthYear(e.date)))].sort().reverse();
-    const monthSelect = document.getElementById("monthSelect");
-    monthSelect.innerHTML = "";
-    months.forEach(m => {
-        const opt = document.createElement("option");
-        opt.value = m;
-        opt.textContent = m;
-        monthSelect.appendChild(opt);
-    });
-    if (!monthSelect.value && months.length) monthSelect.value = months[0];
-}
-
+// Render Table
 function renderTable() {
     let table = document.getElementById("expenseTable");
     table.innerHTML = "";
     let totalMonth = 0;
-    const selectedMonth = document.getElementById("monthSelect").value;
-    const filterCat = document.getElementById("filterCategory").value;
-
-    const [year, month] = selectedMonth.split('-').map(Number);
+    const currentMonth = new Date().getMonth();
+    const currentYear = new Date().getFullYear();
 
     expenses.forEach((exp, index) => {
-        const expDate = new Date(exp.date);
-        if (expDate.getFullYear() !== year || expDate.getMonth() + 1 !== month) return;
-        if (filterCat && exp.category !== filterCat) return;
-
-        totalMonth += parseFloat(exp.amount);
+        let expDate = new Date(exp.date);
+        if (expDate.getMonth() === currentMonth && expDate.getFullYear() === currentYear) {
+            totalMonth += parseFloat(exp.amount);
+        }
 
         table.innerHTML += `
             <tr>
                 <td>${exp.date}</td>
                 <td>${exp.description}</td>
-                <td>${exp.category}</td>
                 <td>$${parseFloat(exp.amount).toFixed(2)}</td>
                 <td>
                     <button class="btn btn-sm btn-warning" onclick="editExpense(${index})">Edit</button>
@@ -193,131 +135,63 @@ function renderTable() {
     });
 
     document.getElementById("totalMonth").textContent = totalMonth.toFixed(2);
-    document.getElementById("monthName").textContent = selectedMonth;
-    saveData();
-    updateChart();
+    localStorage.setItem("expenses_" + currentUser, JSON.stringify(expenses));
 }
 
+// Add Expense
 document.getElementById("expenseForm").addEventListener("submit", function(e) {
     e.preventDefault();
     const date = document.getElementById("date").value;
     const description = document.getElementById("description").value;
     const amount = document.getElementById("amount").value;
-    const category = document.getElementById("category").value;
 
-    expenses.push({ date, description, amount, category });
-    renderMonthOptions();
+    expenses.push({ date, description, amount });
     renderTable();
     this.reset();
 });
 
+// Delete Expense
 function deleteExpense(index) {
     if (confirm("Are you sure you want to delete this record?")) {
         expenses.splice(index, 1);
-        renderMonthOptions();
         renderTable();
     }
 }
 
+// Edit Expense
 function editExpense(index) {
     const exp = expenses[index];
     document.getElementById("date").value = exp.date;
     document.getElementById("description").value = exp.description;
     document.getElementById("amount").value = exp.amount;
-    document.getElementById("category").value = exp.category;
     expenses.splice(index, 1);
-    renderMonthOptions();
     renderTable();
 }
 
-document.getElementById("filterCategory").addEventListener("change", renderTable);
-document.getElementById("monthSelect").addEventListener("change", renderTable);
-
-let chart;
-function updateChart() {
-    const selectedMonth = document.getElementById("monthSelect").value;
-    const [year, month] = selectedMonth.split('-').map(Number);
-    const categoryTotals = {};
-
-    expenses.forEach(exp => {
-        let expDate = new Date(exp.date);
-        if (expDate.getFullYear() === year && expDate.getMonth() + 1 === month) {
-            categoryTotals[exp.category] = (categoryTotals[exp.category] || 0) + parseFloat(exp.amount);
-        }
-    });
-
-    const labels = Object.keys(categoryTotals);
-    const data = Object.values(categoryTotals);
-
-    if (chart) chart.destroy();
-    chart = new Chart(document.getElementById('spendingChart'), {
-        type: 'pie',
-        data: {
-            labels: labels,
-            datasets: [{
-                data: data,
-                backgroundColor: ['#FF6384','#36A2EB','#FFCE56','#4BC0C0','#9966FF']
-            }]
-        }
-    });
-}
-
-function exportPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    const selectedMonth = document.getElementById("monthSelect").value;
-    doc.setFontSize(16);
-    doc.text(`Monthly Payment Report - ${selectedMonth} (${currentUser})`, 10, 10);
-    let y = 20;
-    const [year, month] = selectedMonth.split('-').map(Number);
-
-    expenses.forEach(exp => {
-        let expDate = new Date(exp.date);
-        if (expDate.getFullYear() === year && expDate.getMonth() + 1 === month) {
-            doc.text(`${exp.date} - ${exp.description} - ${exp.category} - $${exp.amount}`, 10, y);
-            y += 8;
-        }
-    });
-    doc.save(`Monthly_Report_${currentUser}_${selectedMonth}.pdf`);
-}
-
-// Login handling
+// Login Function
 document.getElementById("loginForm").addEventListener("submit", function(e) {
     e.preventDefault();
-    const username = document.getElementById("username").value.trim().toLowerCase();
-    const password = document.getElementById("password").value;
+    const user = document.getElementById("username").value.trim().toLowerCase();
+    const pass = document.getElementById("password").value;
 
-    if (users[username] && users[username] === password) {
-        currentUser = username;
-        localStorage.setItem("loggedInUser", currentUser);
-        document.getElementById("loginPage").style.display = "none";
-        document.getElementById("appPage").style.display = "block";
-        loadData();
-        renderMonthOptions();
+    if ((user === "remhay" || user === "sophana") && pass === "Sophanahay010525") {
+        currentUser = user;
+        expenses = JSON.parse(localStorage.getItem("expenses_" + currentUser)) || [];
+        document.getElementById("loginSection").classList.add("d-none");
+        document.getElementById("trackerSection").classList.remove("d-none");
         renderTable();
     } else {
         alert("Invalid username or password!");
     }
 });
 
+// Logout Function
 function logout() {
-    localStorage.removeItem("loggedInUser");
-    document.getElementById("loginPage").style.display = "block";
-    document.getElementById("appPage").style.display = "none";
+    currentUser = "";
+    expenses = [];
+    document.getElementById("loginSection").classList.remove("d-none");
+    document.getElementById("trackerSection").classList.add("d-none");
 }
-
-// Auto-login if session exists
-window.onload = function() {
-    const savedUser = localStorage.getItem("loggedInUser");
-    if (savedUser) {
-        currentUser = savedUser;
-        document.getElementById("loginPage").style.display = "none";
-        document.getElementById("appPage").style.display = "block";
-        loadData();
-        renderMonthOptions();
-        renderTable();
-    }
-};
 </script>
 
 </body>
